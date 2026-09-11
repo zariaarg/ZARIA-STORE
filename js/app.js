@@ -3,7 +3,13 @@
    Se conecta al mismo backend (Apps Script) que usa Craft Flow.
    ============================================================= */
 
-const API_URL = "https://script.google.com/macros/s/AKfycbyZzZQhIyQAdZv2G4YqUqvb_wThnq_S_PPq81YET8W-vBVs7O9No7KOb1_stS2XbMvO/exec";
+// El "/a/~/" evita un bug conocido de Google: si quien visita la
+// página tiene más de una cuenta de Google logueada en el navegador,
+// Google intenta redirigir la petición a una URL con "/u/N/" según
+// cuál cuenta esté "activa" — y esa redirección a veces se rompe y
+// devuelve 404, aunque el deployment esté en "Cualquier usuario".
+// "/a/~/" fuerza el modo genérico/público y evita ese lío por completo.
+const API_URL = "https://script.google.com/a/~/macros/s/AKfycbyZzZQhIyQAdZv2G4YqUqvb_wThnq_S_PPq81YET8W-vBVs7O9No7KOb1_stS2XbMvO/exec";
 const EMPRESA_ID = 1;
 
 // Token de tienda — lo exige el backend para leer el catálogo público
