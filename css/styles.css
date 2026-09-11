@@ -989,6 +989,15 @@ textarea:focus {
     height: 26px;
     border-radius: 50%;
     object-fit: cover;
+    cursor: pointer;
+    position: relative;
+    transition: transform 0.15s ease;
+}
+
+.extra-imagen:hover {
+    z-index: 5;
+    transform: scale(2.3);
+    box-shadow: 0 6px 16px rgba(36, 31, 26, 0.25);
 }
 
 .entrega-opciones,
