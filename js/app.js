@@ -159,16 +159,30 @@ async function iniciar() {
 
         const empresa = empresas.find(e => Number(e.empresa_id) === EMPRESA_ID);
 
+        // El backend lee los encabezados de la hoja tal cual están
+        // escritos (sin normalizar mayúsculas/minúsculas) — así que
+        // buscamos el campo "imagen" sin importar cómo se haya
+        // nombrado la columna en EMPRESAS (imagen, Imagen, IMAGEN...).
+        function buscarCampoInsensible(objeto, nombreCampo) {
+            if (!objeto) return undefined;
+            const clave = Object.keys(objeto).find(
+                k => k.toLowerCase() === nombreCampo.toLowerCase()
+            );
+            return clave ? objeto[clave] : undefined;
+        }
+
         // El favicon sigue usando "logo" (el mismo que usa Craft Flow,
         // funciona bien como ícono chico). El logo del header usa el
         // campo nuevo "imagen" — son cosas distintas a propósito.
-        if (empresa && empresa.logo) {
-            document.getElementById("favicon").href = convertirImagenDrive(empresa.logo);
+        const valorLogo = buscarCampoInsensible(empresa, "logo");
+        if (valorLogo) {
+            document.getElementById("favicon").href = convertirImagenDrive(valorLogo);
         }
 
-        if (empresa && empresa.imagen) {
+        const valorImagen = buscarCampoInsensible(empresa, "imagen");
+        if (valorImagen) {
             const logo = document.getElementById("marca-logo");
-            logo.src = convertirImagenDrive(empresa.imagen);
+            logo.src = convertirImagenDrive(valorImagen);
             logo.hidden = false;
         }
 
