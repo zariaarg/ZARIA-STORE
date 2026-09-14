@@ -111,10 +111,10 @@ a {
 }
 
 .marca-logo {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    object-fit: cover;
+    height: 52px;
+    width: auto;
+    max-width: 220px;
+    object-fit: contain;
 }
 
 .wordmark {
@@ -191,6 +191,8 @@ a {
 
     .marca {
         flex-shrink: 0;
+        width: 100%;
+        justify-content: center;
     }
 
     .site-nav {
@@ -521,9 +523,10 @@ a {
 }
 
 .modelo-card-nombre {
-    font-family: var(--serif);
-    font-size: 20px;
-    font-weight: 500;
+    font-family: var(--sans);
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--tinta);
     margin-bottom: 8px;
 }
 
@@ -1000,11 +1003,24 @@ textarea:focus {
     box-shadow: 0 6px 16px rgba(36, 31, 26, 0.25);
 }
 
-.entrega-opciones,
-.talle-opciones {
+.entrega-opciones {
     display: flex;
     gap: 18px;
     font-size: 14px;
+}
+
+.talle-opciones {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    font-size: 14px;
+}
+
+.talle-opciones input[type="radio"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--terracota);
+    cursor: pointer;
 }
 
 .entrega-opciones label,

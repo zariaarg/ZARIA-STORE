@@ -158,14 +158,18 @@ async function iniciar() {
         estado.margenPct = filaMargen ? Number(filaMargen.valor || 0) : 0;
 
         const empresa = empresas.find(e => Number(e.empresa_id) === EMPRESA_ID);
+
+        // El favicon sigue usando "logo" (el mismo que usa Craft Flow,
+        // funciona bien como ícono chico). El logo del header usa el
+        // campo nuevo "imagen" — son cosas distintas a propósito.
         if (empresa && empresa.logo) {
-            const logoUrl = convertirImagenDrive(empresa.logo);
+            document.getElementById("favicon").href = convertirImagenDrive(empresa.logo);
+        }
 
+        if (empresa && empresa.imagen) {
             const logo = document.getElementById("marca-logo");
-            logo.src = logoUrl;
+            logo.src = convertirImagenDrive(empresa.imagen);
             logo.hidden = false;
-
-            document.getElementById("favicon").href = logoUrl;
         }
 
         renderizarFiltros();
@@ -511,16 +515,33 @@ function abrirFicha(modelo, valoresGuardados) {
     const contenido = document.getElementById("panel-contenido");
     contenido.innerHTML = construirHTMLFicha(modelo);
 
+    // El total (.ficha-total) usa position:sticky para quedar siempre
+    // visible. En algunos navegadores mobile, un sticky recién
+    // inyectado por innerHTML no queda "activo" hasta el primer
+    // scroll — leer offsetHeight fuerza el cálculo de layout ahora
+    // mismo, para que se vea fijo desde que se abre la ficha.
+    contenido.offsetHeight;
+
     cablearEventosFicha();
 
     if (valoresGuardados) {
         const inputColorHilo = document.getElementById("input-color-hilo");
         if (inputColorHilo) inputColorHilo.value = valoresGuardados.color_hilo || "";
-        document.getElementById("input-talle").value = valoresGuardados.talle || "";
-        document.getElementById("input-cuello").value = valoresGuardados.cuello || "";
-        document.getElementById("input-busto").value = valoresGuardados.busto || "";
-        document.getElementById("input-cintura").value = valoresGuardados.cintura || "";
-        document.getElementById("input-alto").value = valoresGuardados.alto || "";
+
+        const talleGuardado = valoresGuardados.talle || "";
+        const radioTalle = document.querySelector(`input[name="talle"][value="${talleGuardado}"]`);
+        if (radioTalle) {
+            radioTalle.checked = true;
+        }
+
+        const esPersonalizado = talleGuardado === "Personalizado";
+        document.getElementById("bloque-medidas").hidden = !esPersonalizado;
+        if (esPersonalizado) {
+            document.getElementById("input-cuello").value = valoresGuardados.cuello || "";
+            document.getElementById("input-busto").value = valoresGuardados.busto || "";
+            document.getElementById("input-cintura").value = valoresGuardados.cintura || "";
+            document.getElementById("input-alto").value = valoresGuardados.alto || "";
+        }
     }
 
     actualizarTotal();
@@ -623,11 +644,16 @@ function construirHTMLFicha(modelo) {
                     <span class="campo-titulo">Talle</span>
                     <button type="button" id="btn-ver-talles" class="link-tabla-talles">Ver tabla de talles</button>
                 </div>
-                <input type="text" id="input-talle" placeholder="Ej: S, M, L, Único">
+                <div class="talle-opciones">
+                    <label><input type="radio" name="talle" value="S"> S</label>
+                    <label><input type="radio" name="talle" value="M"> M</label>
+                    <label><input type="radio" name="talle" value="L"> L</label>
+                    <label><input type="radio" name="talle" value="Personalizado"> Personalizado</label>
+                </div>
             </div>
 
-            <div class="campo">
-                <span class="campo-titulo">¿Preferís que te lo hagamos a medida?</span>
+            <div class="campo" id="bloque-medidas" hidden>
+                <span class="campo-titulo">Tus medidas</span>
                 <div class="form-grid">
                     <input type="text" id="input-cuello" placeholder="Cuello (cm)">
                     <input type="text" id="input-busto" placeholder="Busto (cm)">
@@ -671,6 +697,13 @@ function cablearEventosFicha() {
                 estado.extrasSeleccionados.delete(checkbox.value);
             }
             actualizarTotal();
+        });
+    });
+
+    document.querySelectorAll('input[name="talle"]').forEach(radio => {
+        radio.addEventListener("change", () => {
+            const bloqueMedidas = document.getElementById("bloque-medidas");
+            bloqueMedidas.hidden = radio.value !== "Personalizado";
         });
     });
 
@@ -774,11 +807,13 @@ function agregarAlCarrito() {
 
     const inputColorHilo = document.getElementById("input-color-hilo");
     const colorHilo = inputColorHilo ? inputColorHilo.value.trim() : "";
-    const talle = document.getElementById("input-talle").value.trim();
-    const cuello = document.getElementById("input-cuello").value.trim();
-    const busto = document.getElementById("input-busto").value.trim();
-    const cintura = document.getElementById("input-cintura").value.trim();
-    const alto = document.getElementById("input-alto").value.trim();
+    const radioTalleElegido = document.querySelector('input[name="talle"]:checked');
+    const talle = radioTalleElegido ? radioTalleElegido.value : "";
+    const esPersonalizado = talle === "Personalizado";
+    const cuello = esPersonalizado ? document.getElementById("input-cuello").value.trim() : "";
+    const busto = esPersonalizado ? document.getElementById("input-busto").value.trim() : "";
+    const cintura = esPersonalizado ? document.getElementById("input-cintura").value.trim() : "";
+    const alto = esPersonalizado ? document.getElementById("input-alto").value.trim() : "";
 
     const reemplazos = [];
     const nombresPersonalizacion = [];
@@ -809,7 +844,17 @@ function agregarAlCarrito() {
     const partesResumen = [];
     if (nombresPersonalizacion.length) partesResumen.push(nombresPersonalizacion.join(", "));
     if (colorHilo) partesResumen.push("Hilo " + colorHilo);
-    if (talle) partesResumen.push("Talle " + talle);
+    if (talle === "Personalizado") {
+        const medidas = [
+            cuello && ("cuello " + cuello),
+            busto && ("busto " + busto),
+            cintura && ("cintura " + cintura),
+            alto && ("alto " + alto)
+        ].filter(Boolean).join(", ");
+        partesResumen.push(medidas ? "A medida (" + medidas + ")" : "A medida");
+    } else if (talle) {
+        partesResumen.push("Talle " + talle);
+    }
     if (nombresExtras.length) partesResumen.push("+ " + nombresExtras.join(", "));
 
     const itemConfigurado = {
@@ -875,7 +920,9 @@ function abrirCarrito() {
 }
 
 function renderizarCarrito() {
-    document.getElementById("carrito-contenido").innerHTML = construirHTMLCarrito();
+    const contenedor = document.getElementById("carrito-contenido");
+    contenedor.innerHTML = construirHTMLCarrito();
+    contenedor.offsetHeight; // fuerza el reflow — mismo motivo que en abrirFicha()
     cablearEventosCarrito();
 }
 
