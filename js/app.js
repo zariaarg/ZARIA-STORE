@@ -703,7 +703,14 @@ function cablearEventosFicha() {
     document.querySelectorAll('input[name="talle"]').forEach(radio => {
         radio.addEventListener("change", () => {
             const bloqueMedidas = document.getElementById("bloque-medidas");
-            bloqueMedidas.hidden = radio.value !== "Personalizado";
+            const esPersonalizado = radio.value === "Personalizado";
+            bloqueMedidas.hidden = !esPersonalizado;
+            if (!esPersonalizado) {
+                document.getElementById("input-cuello").value = "";
+                document.getElementById("input-busto").value = "";
+                document.getElementById("input-cintura").value = "";
+                document.getElementById("input-alto").value = "";
+            }
         });
     });
 
