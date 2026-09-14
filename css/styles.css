@@ -861,6 +861,19 @@ a {
     .ficha-detalle,
     .carrito-contenido {
         padding-bottom: 100px;
+        /* En mobile, panel-overlay ya scrollea toda la pantalla. Si
+           ficha-detalle/carrito-contenido TAMBIÉN tienen su propio
+           max-height + overflow-y:auto, quedan dos zonas de scroll
+           compitiendo — al tocar la imagen se mueve una, al tocar el
+           texto se intenta mover la otra (y a veces ni responde,
+           según cuánto contenido tenga en ese momento). Sacamos el
+           límite acá para que quede UNA sola zona de scroll: toda la
+           ficha se mueve junta, tocando en cualquier parte.
+           position:fixed en .ficha-total ya no depende de esto para
+           funcionar, pero sacar el scroll partido es lo que arregla
+           el "toco la imagen y sube, toco el texto y no pasa nada". */
+        max-height: none;
+        overflow-y: visible;
     }
 }
 
