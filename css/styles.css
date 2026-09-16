@@ -332,7 +332,6 @@ a {
     font-size: 58px;
     line-height: 1.05;
     font-weight: 600;
-    font-style: italic;
     color: var(--tinta);
     margin-bottom: 24px;
 }
@@ -523,7 +522,7 @@ a {
 }
 
 .modelo-card-nombre {
-    font-family: var(--sans);
+    font-family: var(--serif);
     font-size: 18px;
     font-weight: 600;
     color: var(--tinta);
@@ -611,7 +610,7 @@ a {
     background: none;
     border: none;
     padding: 0;
-    font-family: var(--serif);
+    font-family: var(--sans);
     font-size: 16px;
     font-weight: 500;
     color: var(--tinta);
@@ -840,41 +839,6 @@ a {
     .ficha-imagen {
         max-height: 320px;
     }
-
-    /* position:sticky no es confiable acá en mobile: .ficha-detalle
-       y .panel-overlay tienen scroll anidado, y varios navegadores
-       mobile (sobre todo por cómo recalculan 100vh al mostrar/ocultar
-       la barra de direcciones) no activan el sticky hasta que ya se
-       scrolleó una vez. position:fixed lo pega directo a la pantalla,
-       sin depender de ningún contenedor con scroll — siempre visible
-       desde que se abre la ficha. */
-    .ficha-total {
-        position: fixed;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        z-index: 5;
-        padding: 16px 20px;
-        box-shadow: 0 -4px 14px rgba(36, 31, 26, 0.12);
-    }
-
-    .ficha-detalle,
-    .carrito-contenido {
-        padding-bottom: 100px;
-        /* En mobile, panel-overlay ya scrollea toda la pantalla. Si
-           ficha-detalle/carrito-contenido TAMBIÉN tienen su propio
-           max-height + overflow-y:auto, quedan dos zonas de scroll
-           compitiendo — al tocar la imagen se mueve una, al tocar el
-           texto se intenta mover la otra (y a veces ni responde,
-           según cuánto contenido tenga en ese momento). Sacamos el
-           límite acá para que quede UNA sola zona de scroll: toda la
-           ficha se mueve junta, tocando en cualquier parte.
-           position:fixed en .ficha-total ya no depende de esto para
-           funcionar, pero sacar el scroll partido es lo que arregla
-           el "toco la imagen y sube, toco el texto y no pasa nada". */
-        max-height: none;
-        overflow-y: visible;
-    }
 }
 
 .ficha-detalle {
@@ -893,7 +857,7 @@ a {
 }
 
 .ficha-nombre {
-    font-family: var(--sans);
+    font-family: var(--serif);
     font-size: 28px;
     font-weight: 600;
     color: var(--tinta);
@@ -1391,4 +1355,46 @@ textarea:focus {
 .tabla-talles td:first-child {
     text-align: left;
     font-weight: 600;
+}
+
+
+/* =========================
+   MOBILE: TOTAL FIJO + SCROLL ÚNICO (ficha y carrito)
+   Van al FINAL del archivo a propósito: .ficha-total, .ficha-detalle
+   y .carrito-contenido tienen sus reglas "base" (sin media query)
+   más arriba en este archivo. En CSS, con la misma especificidad,
+   gana la regla que aparece más abajo — sin importar si está dentro
+   de un @media o no. Si este bloque va antes que esas reglas base,
+   las reglas base las pisan a ELLAS, y el arreglo de mobile queda
+   sin efecto aunque el media query esté activo. Por eso este bloque
+   tiene que ser lo último del archivo.
+========================= */
+@media (max-width: 720px) {
+    /* position:sticky no es confiable acá en mobile: .ficha-detalle
+       y .panel-overlay tienen scroll anidado, y varios navegadores
+       mobile no activan el sticky hasta que ya se scrolleó una vez.
+       position:fixed lo pega directo a la pantalla, sin depender de
+       ningún contenedor con scroll. */
+    .ficha-total {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 5;
+        padding: 16px 20px;
+        box-shadow: 0 -4px 14px rgba(36, 31, 26, 0.12);
+    }
+
+    /* Si ficha-detalle/carrito-contenido tienen su propio
+       max-height + overflow-y:auto ADEMÁS del scroll general de la
+       pantalla (panel-overlay), quedan dos zonas de scroll
+       compitiendo — tocar la imagen mueve una, tocar el texto no
+       mueve nada. Sacamos el límite acá para que quede UNA sola
+       zona de scroll para toda la ficha/carrito. */
+    .ficha-detalle,
+    .carrito-contenido {
+        padding-bottom: 100px;
+        max-height: none;
+        overflow-y: visible;
+    }
 }
