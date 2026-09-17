@@ -710,6 +710,7 @@ function cablearEventosFicha() {
             const titulo = document.getElementById(`titulo-${swatch.dataset.categoria}`);
             if (titulo) {
                 titulo.textContent = swatch.dataset.nombreMaterial;
+                titulo.classList.add("mostrando-hover");
             }
         });
 
@@ -717,6 +718,7 @@ function cablearEventosFicha() {
             const titulo = document.getElementById(`titulo-${swatch.dataset.categoria}`);
             if (titulo) {
                 titulo.textContent = titulo.dataset.original;
+                titulo.classList.remove("mostrando-hover");
             }
         });
     });

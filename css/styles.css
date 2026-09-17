@@ -898,6 +898,12 @@ a {
     font-weight: 600;
     letter-spacing: 0.4px;
     color: var(--tinta-suave);
+    transition: color 0.15s ease;
+}
+
+.campo-titulo.mostrando-hover {
+    color: var(--terracota-oscuro);
+    font-weight: 700;
 }
 
 .swatches {
@@ -914,6 +920,7 @@ a {
     cursor: pointer;
     position: relative;
     padding: 0;
+    transform-origin: top;
     transition: transform 0.15s ease;
 }
 
