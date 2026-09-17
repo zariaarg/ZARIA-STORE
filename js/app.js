@@ -598,14 +598,27 @@ function construirHTMLFicha(modelo) {
         const yaElegido = estado.reemplazoPorCategoria[grupo.categoria];
         const textoOriginal = `${etiqueta} — por defecto: ${grupo.defaults.map(d => d.nombre).join(" / ")}`;
 
+        // Si ya hay un reemplazo elegido (por ejemplo, al editar un
+        // ítem del carrito), el título arranca mostrando ese nombre
+        // en vez del texto por defecto.
+        let textoInicial = textoOriginal;
+        let claseInicial = "";
+        if (yaElegido) {
+            const elegido = opciones.find(op => String(op.material_id) === String(yaElegido));
+            if (elegido && String(elegido.material_id) !== String(grupo.primerDefault.material_id)) {
+                textoInicial = `Elegiste: ${elegido.nombre}`;
+                claseInicial = "mostrando-hover";
+            }
+        }
+
         return `
             <div class="campo" data-categoria="${grupo.categoria}">
-                <span class="campo-titulo" id="titulo-${grupo.categoria}" data-original="${escaparHTML(textoOriginal)}">${escaparHTML(textoOriginal)}</span>
+                <span class="campo-titulo ${claseInicial}" id="titulo-${grupo.categoria}" data-original="${escaparHTML(textoOriginal)}" data-actual="${escaparHTML(textoInicial)}">${escaparHTML(textoInicial)}</span>
                 <div class="swatches">
                     ${opciones.map((op, i) => {
                         const activo = yaElegido ? String(yaElegido) === String(op.material_id) : i === 0;
                         return `
-                        <button type="button" class="swatch ${activo ? "activo" : ""}" data-material-id="${op.material_id}" data-categoria="${grupo.categoria}" data-nombre-material="${escaparHTML(op.nombre)}">
+                        <button type="button" class="swatch ${activo ? "activo" : ""}" data-material-id="${op.material_id}" data-categoria="${grupo.categoria}" data-nombre-material="${escaparHTML(op.nombre)}" data-es-default="${i === 0 ? "true" : "false"}">
                             <img src="${convertirImagenDrive(op.imagen_muestra) || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E"}" alt="${escaparHTML(op.nombre)}" onerror="this.style.background='var(--tarjeta)'">
                         </button>
                     `;
@@ -692,6 +705,7 @@ function cablearEventosFicha() {
         swatch.addEventListener("click", () => {
             const categoria = swatch.dataset.categoria;
             const materialId = swatch.dataset.materialId;
+            const esDefault = swatch.dataset.esDefault === "true";
 
             document.querySelectorAll(`.swatch[data-categoria="${categoria}"]`).forEach(s => {
                 s.classList.remove("activo");
@@ -700,6 +714,18 @@ function cablearEventosFicha() {
 
             estado.reemplazoPorCategoria[categoria] = materialId;
             actualizarTotal();
+
+            // El título "recuerda" lo elegido — no vuelve al texto por
+            // defecto al sacar el mouse, salvo que lo elegido SEA el
+            // default.
+            const titulo = document.getElementById(`titulo-${categoria}`);
+            if (titulo) {
+                titulo.dataset.actual = esDefault
+                    ? titulo.dataset.original
+                    : `Elegiste: ${swatch.dataset.nombreMaterial}`;
+                titulo.textContent = titulo.dataset.actual;
+                titulo.classList.toggle("mostrando-hover", !esDefault);
+            }
         });
 
         // El nombre del material se muestra en el título fijo de
@@ -717,8 +743,11 @@ function cablearEventosFicha() {
         swatch.addEventListener("mouseleave", () => {
             const titulo = document.getElementById(`titulo-${swatch.dataset.categoria}`);
             if (titulo) {
-                titulo.textContent = titulo.dataset.original;
-                titulo.classList.remove("mostrando-hover");
+                // Al sacar el mouse, vuelve a lo REALMENTE elegido
+                // (data-actual), no siempre al texto por defecto.
+                const actual = titulo.dataset.actual || titulo.dataset.original;
+                titulo.textContent = actual;
+                titulo.classList.toggle("mostrando-hover", actual !== titulo.dataset.original);
             }
         });
     });

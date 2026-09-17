@@ -328,7 +328,7 @@ a {
 }
 
 .hero-title {
-    font-family: var(--serif);
+    font-family: "Times New Roman", Times, serif;
     font-size: 58px;
     line-height: 1.05;
     font-weight: 600;
@@ -939,6 +939,8 @@ a {
 
 .swatch.activo {
     border-color: var(--terracota);
+    border-width: 3px;
+    box-shadow: 0 2px 8px rgba(194, 112, 79, 0.45);
 }
 
 input[type="text"],
