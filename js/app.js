@@ -596,17 +596,17 @@ function construirHTMLFicha(modelo) {
         const opciones = [grupo.primerDefault, ...alternativas];
         const etiqueta = grupo.categoria === "HEBILLA" ? "Hebilla" : "Material principal";
         const yaElegido = estado.reemplazoPorCategoria[grupo.categoria];
+        const textoOriginal = `${etiqueta} — por defecto: ${grupo.defaults.map(d => d.nombre).join(" / ")}`;
 
         return `
             <div class="campo" data-categoria="${grupo.categoria}">
-                <span class="campo-titulo">${escaparHTML(etiqueta)} — por defecto: ${escaparHTML(grupo.defaults.map(d => d.nombre).join(" / "))}</span>
+                <span class="campo-titulo" id="titulo-${grupo.categoria}" data-original="${escaparHTML(textoOriginal)}">${escaparHTML(textoOriginal)}</span>
                 <div class="swatches">
                     ${opciones.map((op, i) => {
                         const activo = yaElegido ? String(yaElegido) === String(op.material_id) : i === 0;
                         return `
-                        <button type="button" class="swatch ${activo ? "activo" : ""}" data-material-id="${op.material_id}" data-categoria="${grupo.categoria}">
+                        <button type="button" class="swatch ${activo ? "activo" : ""}" data-material-id="${op.material_id}" data-categoria="${grupo.categoria}" data-nombre-material="${escaparHTML(op.nombre)}">
                             <img src="${convertirImagenDrive(op.imagen_muestra) || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E"}" alt="${escaparHTML(op.nombre)}" onerror="this.style.background='var(--tarjeta)'">
-                            <span class="swatch-nombre">${escaparHTML(op.nombre)}</span>
                         </button>
                     `;
                     }).join("")}
@@ -700,6 +700,24 @@ function cablearEventosFicha() {
 
             estado.reemplazoPorCategoria[categoria] = materialId;
             actualizarTotal();
+        });
+
+        // El nombre del material se muestra en el título fijo de
+        // arriba (no en un cartelito pegado al swatch) — así nunca se
+        // corta, sin importar si el swatch está en el borde izquierdo
+        // o derecho del panel.
+        swatch.addEventListener("mouseenter", () => {
+            const titulo = document.getElementById(`titulo-${swatch.dataset.categoria}`);
+            if (titulo) {
+                titulo.textContent = swatch.dataset.nombreMaterial;
+            }
+        });
+
+        swatch.addEventListener("mouseleave", () => {
+            const titulo = document.getElementById(`titulo-${swatch.dataset.categoria}`);
+            if (titulo) {
+                titulo.textContent = titulo.dataset.original;
+            }
         });
     });
 
